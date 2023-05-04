@@ -5,12 +5,16 @@ FROM python:3.9-alpine
 WORKDIR /app
 
 # Upgrade pip
-RUN pip install --upgrade pip
-
+#RUN pip install --upgrade pip
+RUN python -m pip install --upgrade pip
+RUN python -m pip install --upgrade Pillow
 # Copy the requirements file into the container at /app
 COPY requirements.txt .
 
 # Install any needed packages specified in requirements.txt
+# RUN apk add tiff-dev jpeg-dev openjpeg-dev zlib-dev freetype-dev lcms2-dev && \
+#     libwebp-dev tcl-dev tk-dev harfbuzz-dev fribidi-dev libimagequant-dev && \
+#     libxcb-dev libpng-dev
 RUN apk add --no-cache --virtual .build-deps gcc musl-dev libffi-dev openssl-dev && \
     pip install --no-cache-dir -r requirements.txt && \
     apk del .build-deps
