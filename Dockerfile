@@ -25,6 +25,7 @@ RUN apk add --no-cache poppler-utils
 # Install system-level dependencies for Pillow
 RUN apk add --no-cache jpeg-dev zlib-dev libjpeg
 
+RUN mkdir images # Create the images directory
 # Copy the rest of the application code into the container at /app
 COPY . .
 
