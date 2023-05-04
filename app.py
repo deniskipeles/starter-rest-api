@@ -12,10 +12,10 @@ HOST = '0.0.0.0'
 pdf2image_options = {
     'dpi': 300,
     'output_folder': './images',
-    'format': 'png',
+    'save_format': 'png',
     'size': (1920, 1080),
 }
-
+#images = convert_from_bytes(pdf_content, size=(800, None), grayscale=True, dpi=300, save_format='png')
 @app.route('/')
 def hello_world():
     return 'Hello, World!'
