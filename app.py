@@ -54,7 +54,8 @@ from flask_cors import CORS
 
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+app.config['CORS_ALLOW_ALL_ORIGINS'] = True
 PORT = 3000
 HOST = '0.0.0.0'
 
