@@ -81,6 +81,15 @@ def convert():
             img_data = base64.b64encode(img_buffer.read()).decode('utf-8')
             images.append(img_data)
 
+        # Remove images from the output directory
+        for filename in os.listdir(temp_dir):
+            file_path = os.path.join(temp_dir, filename)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception as e:
+                print(f'Error deleting {file_path}: {e}')
+
     return jsonify({'images': images})
 
 if __name__ == '__main__':
