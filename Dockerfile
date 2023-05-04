@@ -8,6 +8,7 @@ WORKDIR /app
 #RUN pip install --upgrade pip
 RUN python -m pip install --upgrade pip
 RUN python -m pip install --upgrade Pillow
+RUN pip install flask-cors
 # Copy the requirements file into the container at /app
 COPY requirements.txt .
 

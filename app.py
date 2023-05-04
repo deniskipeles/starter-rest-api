@@ -50,8 +50,11 @@ import os
 from pdf2image import convert_from_bytes
 from io import BytesIO
 from PIL import Image
+from flask_cors import CORS
+
 
 app = Flask(__name__)
+CORS(app)
 PORT = 3000
 HOST = '0.0.0.0'
 
