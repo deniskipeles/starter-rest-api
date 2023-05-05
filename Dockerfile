@@ -21,7 +21,7 @@ RUN apk add --no-cache --virtual .build-deps gcc musl-dev libffi-dev openssl-dev
     pip install --no-cache-dir -r requirements.txt && \
     apk del .build-deps
 
-RUN apk add --no-cache libreoffice unoconv
+#RUN apk add --no-cache libreoffice unoconv
 
 # Install poppler-utils
 RUN apk add --no-cache poppler-utils
