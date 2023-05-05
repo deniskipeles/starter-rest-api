@@ -1,47 +1,4 @@
 '''
-from flask import Flask, request, Response
-from io import BytesIO
-import requests
-from pdf2image import convert_from_bytes
-from PIL import Image
-import json
-
-app = Flask(__name__)
-PORT = 3000
-HOST = '0.0.0.0'
-
-pdf2image_options = {
-    'dpi': 300,
-    'output_folder': './images',
-    #'save_format': 'png',
-    'size': (1920, 1080),
-}
-#images = convert_from_bytes(pdf_content, size=(800, None), grayscale=True, dpi=300, save_format='png')
-@app.route('/')
-def hello_world():
-    return 'Hello, World!'
-
-@app.route('/convert')
-def convert_pdf_to_images():
-    document_url = request.args.get('url')
-
-    response = requests.get(document_url)
-    if response.status_code != 200:
-        return Response('Error fetching PDF', status=400)
-
-    images = []
-    for page in convert_from_bytes(response.content, **pdf2image_options):
-        resized_image = page.resize((800, int(800/page.size[0]*page.size[1])))
-        buffer = BytesIO()
-        resized_image.save(buffer, 'PNG')
-        images.append(buffer.getvalue())
-
-    response_data = {'images': images}
-    return Response(json.dumps(response_data), mimetype='application/json')
-
-if __name__ == '__main__':
-    app.run(host=HOST, port=PORT, debug=True)
-'''
 from flask import Flask, jsonify, request
 import requests
 import base64
@@ -50,6 +7,93 @@ import os
 from pdf2image import convert_from_bytes
 from io import BytesIO
 from PIL import Image
+from flask_cors import CORS
+
+import subprocess
+import mimetypes
+
+
+app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+app.config['CORS_ALLOW_ALL_ORIGINS'] = True
+PORT = 3000
+HOST = '0.0.0.0'
+
+@app.route('/')
+def hello_world():
+    return 'Hello, World!'
+
+
+@app.route('/convert')
+def convert():
+    document_url = request.args.get('url')
+    if not document_url:
+        return jsonify({'error': 'URL is required'})
+
+    try:
+        response = requests.get(document_url)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': str(e)})
+
+    # Get the file type from the response headers
+    content_type = response.headers.get('content-type')
+    file_ext = mimetypes.guess_extension(content_type)
+    if not file_ext:
+        return jsonify({'error': 'Unknown file type'})
+
+    # Use unoconv to convert the file to images
+    with tempfile.TemporaryDirectory() as temp_dir:
+        images = []
+        if file_ext == '.pdf':
+            pages = convert_from_bytes(response.content, output_folder=temp_dir)
+            for page in pages:
+                img_buffer = BytesIO()
+                page.save(img_buffer, format='PNG')
+                img_buffer.seek(0)
+                img_data = base64.b64encode(img_buffer.read()).decode('utf-8')
+                images.append(img_data)
+        else:
+            # Use unoconv to convert the file to PDF
+            input_file = os.path.join(temp_dir, 'input' + file_ext)
+            output_file = os.path.join(temp_dir, 'output.pdf')
+            with open(input_file, 'wb') as f:
+                f.write(response.content)
+            subprocess.run(['unoconv', '-f', 'pdf', '-o', temp_dir, input_file], check=True)
+
+            # Convert the PDF to images
+            pages = convert_from_path(output_file, output_folder=temp_dir)
+            for page in pages:
+                img_buffer = BytesIO()
+                page.save(img_buffer, format='PNG')
+                img_buffer.seek(0)
+                img_data = base64.b64encode(img_buffer.read()).decode('utf-8')
+                images.append(img_data)
+
+        # Remove input and output files from the temp directory
+        os.remove(input_file)
+        os.remove(output_file)
+
+        # Remove images from the output directory
+        for filename in os.listdir(temp_dir):
+            file_path = os.path.join(temp_dir, filename)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception as e:
+                print(f'Error deleting {file_path}: {e}')
+
+    return jsonify({'images': images})
+
+if __name__ == '__main__':
+    app.run(host=HOST, port=PORT, debug=True)
+'''
+import requests
+import tempfile
+import os
+from pdf2image import convert_from_bytes
+from io import BytesIO
+from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 
 
@@ -78,12 +122,11 @@ def convert():
     with tempfile.TemporaryDirectory() as temp_dir:
         images = []
         pages = convert_from_bytes(response.content, output_folder=temp_dir)
-        for page in pages:
+        for i, page in enumerate(pages):
             img_buffer = BytesIO()
             page.save(img_buffer, format='PNG')
             img_buffer.seek(0)
-            img_data = base64.b64encode(img_buffer.read()).decode('utf-8')
-            images.append(img_data)
+            images.append(img_buffer)
 
         # Remove images from the output directory
         for filename in os.listdir(temp_dir):
@@ -94,7 +137,7 @@ def convert():
             except Exception as e:
                 print(f'Error deleting {file_path}: {e}')
 
-    return jsonify({'images': images})
+    return send_file(images[0], mimetype='image/png')
 
 if __name__ == '__main__':
     app.run(host=HOST, port=PORT, debug=True)
