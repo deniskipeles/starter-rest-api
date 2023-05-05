@@ -12,6 +12,7 @@ RUN pip install flask-cors
 # Copy the requirements file into the container at /app
 COPY requirements.txt .
 
+RUN apk update
 # Install any needed packages specified in requirements.txt
 # RUN apk add tiff-dev jpeg-dev openjpeg-dev zlib-dev freetype-dev lcms2-dev && \
 #     libwebp-dev tcl-dev tk-dev harfbuzz-dev fribidi-dev libimagequant-dev && \
