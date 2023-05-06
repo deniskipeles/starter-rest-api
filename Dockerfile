@@ -8,7 +8,7 @@ WORKDIR /app
 #RUN pip install --upgrade pip
 RUN python -m pip install --upgrade pip
 RUN python -m pip install --upgrade Pillow
-RUN python -m pip install --upgrade pymupdf
+RUN python -m pip install pymupdf
 RUN pip install flask-cors
 
 
