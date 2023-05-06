@@ -9,6 +9,23 @@ WORKDIR /app
 RUN python -m pip install --upgrade pip
 RUN python -m pip install --upgrade Pillow
 RUN pip install flask-cors
+
+
+
+RUN apk add --no-cache \
+    gcc \
+    musl-dev \
+    libffi-dev \
+    libjpeg-turbo-dev \
+    openjpeg-dev \
+    zlib-dev \
+    lcms2-dev \
+    tiff-dev \
+    freetype-dev \
+    harfbuzz-dev \
+    fribidi-dev \
+    && pip install --no-cache-dir PyMuPDF
+    
 # Copy the requirements file into the container at /app
 COPY requirements.txt .
 
