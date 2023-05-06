@@ -27,8 +27,8 @@ def hello_world():
 @app.route('/convert')
 def convert():
     document_url = request.args.get('url')
-    pages = request.args.get('pages') or 1
-    pages = int(pages)
+    page_number = request.args.get('pages') or 1
+    page_number = int(page_number)
     if not document_url:
         return jsonify({'error': 'URL is required'})
 
@@ -88,7 +88,7 @@ def convert():
             except Exception as e:
                 print(f'Error deleting {file_path}: {e}')
     print('success',len(images))
-    return jsonify({'images': images[:int(pages)]})
+    return jsonify({'images': images[:page_number]})
 
 if __name__ == '__main__':
     app.run(host=HOST, port=PORT, debug=True)
