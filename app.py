@@ -130,6 +130,19 @@ def hello_world():
     return 'Hello, World!'
 
 
+from multiprocessing import Pool
+
+def convert_to_images(data, temp_dir):
+    images = []
+    pages = convert_from_bytes(data, dpi=300, output_folder=temp_dir, fmt='jpeg')
+    for page in pages:
+        img_buffer = BytesIO()
+        page.save(img_buffer, format='PNG')
+        img_buffer.seek(0)
+        img_data = base64.b64encode(img_buffer.read()).decode('utf-8')
+        images.append(img_data)
+    return images
+
 @app.route('/convert')
 def convert():
     document_url = request.args.get('url')
@@ -139,7 +152,7 @@ def convert():
         return jsonify({'error': 'URL is required'})
 
     try:
-        response = requests.get(document_url)
+        response = requests.get(document_url, stream=True)
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         return jsonify({'error': str(e)})
@@ -150,32 +163,35 @@ def convert():
     if not file_ext:
         return jsonify({'error': 'Unknown file type'})
 
-    # Use unoconv to convert the file to images
-    with tempfile.TemporaryDirectory() as temp_dir:
+    # Use multiprocessing to convert the file to images
+    with tempfile.TemporaryDirectory() as temp_dir, Pool() as pool:
+        images = []
         if file_ext == '.pdf':
-            images = []
-            # Use multiprocessing to convert PDF to images
-            with multiprocessing.Pool() as pool:
-                args = [(page.content, temp_dir) for page in response.iter_content()]
-                results = pool.starmap(convert_to_images, args)
-                for result in results:
-                    images += result
+            args = [(chunk, temp_dir) for chunk in response.iter_content()]
+            results = pool.starmap(convert_to_images, args)
+            for result in results:
+                images += result
         else:
-            # Use unoconv to convert the file to PDF
+            # Convert the file to PDF using unoconv
             input_file = os.path.join(temp_dir, 'input' + file_ext)
             output_file = os.path.join(temp_dir, 'output.pdf')
             with open(input_file, 'wb') as f:
-                f.write(response.content)
+                for chunk in response.iter_content():
+                    f.write(chunk)
             subprocess.run(['unoconv', '-f', 'pdf', '-o', temp_dir, input_file], check=True)
 
             # Convert the PDF to images
-            images = convert_to_images(output_file, temp_dir)
+            pages = convert_from_path(output_file, dpi=300, output_folder=temp_dir, fmt='jpeg')
+            for page in pages:
+                img_buffer = BytesIO()
+                page.save(img_buffer, format='PNG')
+                img_buffer.seek(0)
+                img_data = base64.b64encode(img_buffer.read()).decode('utf-8')
+                images.append(img_data)
 
-        # Remove input and output files from the temp directory
-        if os.path.exists(input_file):
-          os.remove(input_file)
-        if os.path.exists(output_file):
-          os.remove(output_file)
+            # Remove the input and output files
+            os.remove(input_file)
+            os.remove(output_file)
 
         # Remove images from the output directory
         for filename in os.listdir(temp_dir):
@@ -185,8 +201,10 @@ def convert():
                     os.unlink(file_path)
             except Exception as e:
                 print(f'Error deleting {file_path}: {e}')
+
     print('success', len(images))
     return jsonify({'images': images[:page_number]})
+
 
 
 if __name__ == '__main__':
