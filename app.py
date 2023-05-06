@@ -88,7 +88,7 @@ def convert():
             except Exception as e:
                 print(f'Error deleting {file_path}: {e}')
     print('success',len(images))
-    return jsonify({'images': images[:pages]})
+    return jsonify({'images': images[:int(pages)]})
 
 if __name__ == '__main__':
     app.run(host=HOST, port=PORT, debug=True)
