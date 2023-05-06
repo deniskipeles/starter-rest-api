@@ -34,6 +34,6 @@ RUN mkdir images # Create the images directory
 COPY . .
 
 # Make port 3000 available to the world outside this container
-EXPOSE 3000
+EXPOSE 8000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:3000", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app:app"]

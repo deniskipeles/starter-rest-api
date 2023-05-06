@@ -84,7 +84,7 @@ def convert():
                     os.unlink(file_path)
             except Exception as e:
                 print(f'Error deleting {file_path}: {e}')
-
+    print('success',len(images))
     return jsonify({'images': images[:pages]})
 
 if __name__ == '__main__':
