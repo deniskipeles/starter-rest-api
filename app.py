@@ -106,7 +106,7 @@ from PIL import Image
 from flask_cors import CORS
 import mimetypes
 import subprocess
-import multiprocessing
+
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
@@ -114,16 +114,7 @@ app.config['CORS_ALLOW_ALL_ORIGINS'] = True
 PORT = 8000
 HOST = '0.0.0.0'
 
-def convert_to_images(content, temp_dir):
-    images = []
-    pages = convert_from_bytes(content, output_folder=temp_dir, dpi=150, fmt='png')
-    for page in pages:
-        img_buffer = BytesIO()
-        page.save(img_buffer, format='PNG')
-        img_buffer.seek(0)
-        img_data = base64.b64encode(img_buffer.read()).decode('utf-8')
-        images.append(img_data)
-    return images
+
 
 @app.route('/')
 def hello_world():
