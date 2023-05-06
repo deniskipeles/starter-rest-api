@@ -24,7 +24,7 @@ RUN apk add --no-cache \
     fribidi-dev
   
 #RUN python -m pip install --upgrade pymupdf
-pip install PyMuPDF==1.16.7 
+RUN pip install PyMuPDF==1.16.7 
 # Copy the requirements file into the container at /app
 COPY requirements.txt .
 
