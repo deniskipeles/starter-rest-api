@@ -10,21 +10,19 @@ RUN python -m pip install --upgrade pip
 RUN python -m pip install --upgrade Pillow
 RUN pip install flask-cors
 
-RUN apk add --no-cache \
-    gcc \
-    musl-dev \
-    libffi-dev \
-    libjpeg-turbo-dev \
-    openjpeg-dev \
-    zlib-dev \
-    lcms2-dev \
-    tiff-dev \
-    freetype-dev \
-    harfbuzz-dev \
-    fribidi-dev
-  
-#RUN python -m pip install --upgrade pymupdf
-RUN pip install PyMuPDF==1.16.7 
+RUN apk --no-cache add --virtual .builddeps gcc g++
+
+# These dependency packages cannot be removed because they continue to be used in PyMupdf
+RUN apk --no-cache add  mupdf-dev freetype-dev jbig2dec-dev jpeg-dev openjpeg-dev 
+
+# install PyMupdf
+RUN pip install pymupdf
+
+# Remove virtual environment dependencies
+RUN apk del .builddeps
+
+
+
 # Copy the requirements file into the container at /app
 COPY requirements.txt .
 
