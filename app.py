@@ -16,7 +16,7 @@ import mimetypes
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 app.config['CORS_ALLOW_ALL_ORIGINS'] = True
-PORT = 3000
+PORT = 8000
 HOST = '0.0.0.0'
 
 @app.route('/')
@@ -88,7 +88,7 @@ def convert():
             except Exception as e:
                 print(f'Error deleting {file_path}: {e}')
     print('success',len(images))
-    return jsonify({'images': len(images)})
+    return jsonify({'images': images[:pages]})
 
 if __name__ == '__main__':
     app.run(host=HOST, port=PORT, debug=True)
