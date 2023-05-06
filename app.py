@@ -118,7 +118,7 @@ PORT = 8000
 HOST = '0.0.0.0'
 
 
-def split_pdf(input_file, temp_dir, chunk_size=10):
+def split_pdf1(input_file, temp_dir, chunk_size=10):
     # Open the input PDF file
     with open(input_file, 'rb') as f:
         input_pdf = PdfFileReader(f)
@@ -140,8 +140,35 @@ def split_pdf(input_file, temp_dir, chunk_size=10):
     return chunks
 
 
+import math
+import fitz
 
-CHUNK_SIZE = 10
+def split_pdf(input_file, temp_dir, chunk_size=10):
+    # Create a temporary directory to store the chunked files
+    os.makedirs(temp_dir, exist_ok=True)
+
+    # Open the input PDF file
+    with fitz.open(input_file) as doc:
+        # Get the total number of pages
+        num_pages = doc.page_count
+
+        # Split the PDF file into chunks
+        chunks = []
+        for i in range(0, num_pages, chunk_size):
+            chunk_start = i
+            chunk_end = min(i + chunk_size, num_pages)
+            chunk_output = os.path.join(temp_dir, f'chunk_{chunk_start}_{chunk_end}.pdf')
+            with fitz.open() as chunk_doc:
+                for page in range(chunk_start, chunk_end):
+                    chunk_doc.insert_pdf(doc, from_page=page, to_page=page)
+                chunk_doc.save(chunk_output)
+            chunks.append(chunk_output)
+
+    return chunks
+
+
+
+CHUNK_SIZE = 5
 OUTPUT_FORMAT = "png"
 
 @app.route('/convert')
