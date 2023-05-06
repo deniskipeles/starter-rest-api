@@ -1,4 +1,4 @@
-'''
+
 from flask import Flask, jsonify, request
 import requests
 import base64
@@ -27,6 +27,8 @@ def hello_world():
 @app.route('/convert')
 def convert():
     document_url = request.args.get('url')
+    pages = request.args.get('pages') or 1
+    pages = int(pages)
     if not document_url:
         return jsonify({'error': 'URL is required'})
 
@@ -83,61 +85,7 @@ def convert():
             except Exception as e:
                 print(f'Error deleting {file_path}: {e}')
 
-    return jsonify({'images': images})
-
-if __name__ == '__main__':
-    app.run(host=HOST, port=PORT, debug=True)
-'''
-import requests
-import tempfile
-import os
-from pdf2image import convert_from_bytes
-from io import BytesIO
-from flask import Flask, jsonify, request, send_file
-from flask_cors import CORS
-
-
-app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
-app.config['CORS_ALLOW_ALL_ORIGINS'] = True
-PORT = 3000
-HOST = '0.0.0.0'
-
-@app.route('/')
-def hello_world():
-    return 'Hello, World!'
-
-@app.route('/convert')
-def convert():
-    document_url = request.args.get('url')
-    if not document_url:
-        return jsonify({'error': 'URL is required'})
-
-    try:
-        response = requests.get(document_url)
-        response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        return jsonify({'error': str(e)})
-
-    with tempfile.TemporaryDirectory() as temp_dir:
-        images = []
-        pages = convert_from_bytes(response.content, output_folder=temp_dir)
-        for i, page in enumerate(pages):
-            img_buffer = BytesIO()
-            page.save(img_buffer, format='PNG')
-            img_buffer.seek(0)
-            images.append(img_buffer)
-
-        # Remove images from the output directory
-        for filename in os.listdir(temp_dir):
-            file_path = os.path.join(temp_dir, filename)
-            try:
-                if os.path.isfile(file_path):
-                    os.unlink(file_path)
-            except Exception as e:
-                print(f'Error deleting {file_path}: {e}')
-
-    return send_file(images[0], mimetype='image/png')
+    return jsonify({'images': images[:pages]})
 
 if __name__ == '__main__':
     app.run(host=HOST, port=PORT, debug=True)
