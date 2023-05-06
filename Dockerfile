@@ -10,10 +10,6 @@ RUN python -m pip install --upgrade pip
 RUN python -m pip install --upgrade Pillow
 RUN pip install flask-cors
 
-
-
-
-
 RUN apk add --no-cache \
     gcc \
     musl-dev \
