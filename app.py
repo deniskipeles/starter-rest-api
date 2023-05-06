@@ -75,9 +75,10 @@ def convert():
                 images.append(img_data)
 
         # Remove input and output files from the temp directory
-        os.remove(input_file)
-        os.remove(output_file)
-
+        if input_file:
+          os.remove(input_file)
+        if output_file:
+          os.remove(output_file)
         # Remove images from the output directory
         for filename in os.listdir(temp_dir):
             file_path = os.path.join(temp_dir, filename)
