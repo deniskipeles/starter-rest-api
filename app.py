@@ -47,6 +47,8 @@ def convert():
     # Use unoconv to convert the file to images
     with tempfile.TemporaryDirectory() as temp_dir:
         images = []
+        input_file = None
+        output_file = None
         if file_ext == '.pdf':
             pages = convert_from_bytes(response.content, output_folder=temp_dir)
             for page in pages:
