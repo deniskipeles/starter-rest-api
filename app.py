@@ -62,7 +62,7 @@ def convert():
         if not file_ext:
             return jsonify({'error': 'Unknown file type'})
         if file_ext == '.docx':
-            return jsonify({'doc': 'x'})
+            #return jsonify({'doc': 'x'})
             # Convert DOCX file to PDF
             with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as temp_docx:
               for chunk in response.iter_content(chunk_size=8192):
