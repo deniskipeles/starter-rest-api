@@ -158,7 +158,7 @@ def convert():
     response = None
     try:
         # Download the document file to a temporary file
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
             response = requests.get(document_url, stream=True)
             response.raise_for_status()
             for chunk in response.iter_content(chunk_size=8192):
