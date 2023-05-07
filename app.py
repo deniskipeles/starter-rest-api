@@ -41,6 +41,7 @@ def convert():
     response = None
     images = []
     input_file = None
+    temp_image = None
     try:
         # Get the file type from the response headers
         response = requests.get(document_url, stream=True)
