@@ -56,7 +56,7 @@ def convert():
         # Check the file type and split the file into chunks if necessary
         file_ext = mimetypes.guess_extension(mimetypes.guess_type(input_file)[0])
         if file_ext:
-            file_ext = file_ext.lower()
+            file_ext = file_ext
         else:
             return jsonify({'error': 'Unsupported file type'})
 
