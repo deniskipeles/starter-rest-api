@@ -52,7 +52,7 @@ def convert():
             with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as temp_docx:
               for chunk in response.iter_content(chunk_size=8192):
                   temp_docx.write(chunk)
-                  input_file=temp_docx.name
+            input_file=temp_docx.name
             with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_pdf:
                 docx2pdf(input_file, temp_pdf.name)
                 input_file = temp_pdf.name
