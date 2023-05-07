@@ -46,7 +46,9 @@ def convert():
         # Get the file type from the response headers
         response = requests.get(document_url, stream=True)
         content_type = response.headers.get('content-type')
-        file_ext = mimetypes.guess_extension(content_type)
+        mime_type, _ = mimetypes.guess_type(document_url)
+        file_ext = mimetypes.guess_extension(mime_type)
+        #file_ext = mimetypes.guess_extension(content_type)
         if not file_ext:
             return jsonify({'error': 'Unknown file type'})
         if file_ext == '.docx':
