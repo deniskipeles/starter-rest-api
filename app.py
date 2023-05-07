@@ -144,7 +144,7 @@ def split_pdf(input_file, temp_dir, chunk_size=10):
 
 
 
-CHUNK_SIZE = 5
+CHUNK_SIZE = 3
 OUTPUT_FORMAT = "png"
 
 @app.route('/convert')
@@ -157,92 +157,56 @@ def convert():
 
     response = None
     try:
-        response = requests.get(document_url, stream=True)
-        response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        return jsonify({'error': str(e)})
+        # Download the document file to a temporary file
+        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+            response = requests.get(document_url, stream=True)
+            response.raise_for_status()
+            for chunk in response.iter_content(chunk_size=8192):
+                temp_file.write(chunk)
+        input_file = temp_file.name
 
-    # Get the file type from the response headers
-    content_type = response.headers.get('content-type')
-    file_ext = mimetypes.guess_extension(content_type)
-    if not file_ext:
-        return jsonify({'error': 'Unknown file type'})
-
-    # Use unoconv to convert the file to images
-    with tempfile.TemporaryDirectory() as temp_dir:
-        images = []
-        input_file = None
-        output_file = None
-        if file_ext == '.pdf':
-            # Check the file size, and split it into chunks if necessary
+        # Check the file type and split the file into chunks if necessary
+        file_ext = os.path.splitext(input_file)[1]
+        if file_ext.lower() == '.pdf':
             content_length = int(response.headers.get('content-length', 0))
             if content_length > CHUNK_SIZE:
-                chunk_files = split_pdf(response.content, temp_dir, CHUNK_SIZE)
-                for chunk_file in chunk_files:
-                    pages = convert_from_path(chunk_file, dpi=DPI, output_folder=temp_dir, fmt=OUTPUT_FORMAT)
-                    for page in pages:
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    chunk_files = split_pdf(input_file, temp_dir, CHUNK_SIZE)
+                    for chunk_file in chunk_files:
+                        with fitz.open(chunk_file) as doc:
+                            pages = doc.page_count
+                            for i in range(min(page_number, pages)):
+                                page = doc.load_page(i)
+                                pix = page.get_pixmap(alpha=False)
+                                img_buffer = BytesIO()
+                                pix.save(img_buffer, format='PNG')
+                                img_buffer.seek(0)
+                                img_data = base64.b64encode(img_buffer.read()).decode('utf-8')
+                                images.append(img_data)
+            else:
+                with fitz.open(input_file) as doc:
+                    pages = doc.page_count
+                    for i in range(min(page_number, pages)):
+                        page = doc.load_page(i)
+                        pix = page.get_pixmap(alpha=False)
                         img_buffer = BytesIO()
-                        page.save(img_buffer, format='PNG')
+                        pix.save(img_buffer, format='PNG')
                         img_buffer.seek(0)
                         img_data = base64.b64encode(img_buffer.read()).decode('utf-8')
                         images.append(img_data)
-            else:
-                pages = convert_from_bytes(response.content, dpi=DPI, output_folder=temp_dir, fmt=OUTPUT_FORMAT)
-                for page in pages:
-                    img_buffer = BytesIO()
-                    page.save(img_buffer, format='PNG')
-                    img_buffer.seek(0)
-                    img_data = base64.b64encode(img_buffer.read()).decode('utf-8')
-                    images.append(img_data)
         else:
-            # Use unoconv to convert the file to PDF
-            input_file = os.path.join(temp_dir, 'input' + file_ext)
-            output_file = os.path.join(temp_dir, 'output.pdf')
-            with open(input_file, 'wb') as f:
-                f.write(response.content)
-            subprocess.run(['unoconv', '-f', 'pdf', '-o', temp_dir, input_file], check=True)
+            return jsonify({'error': 'Unsupported file type'})
 
-            # Check the file size, and split it into chunks if necessary
-            content_length = os.path.getsize(output_file)
-            if content_length > CHUNK_SIZE:
-                chunk_files = split_pdf(open(output_file, 'rb'), temp_dir, CHUNK_SIZE)
-                for chunk_file in chunk_files:
-                    pages = convert_from_path(chunk_file, dpi=DPI, output_folder=temp_dir, fmt=OUTPUT_FORMAT)
-                    for page in pages:
-                        img_buffer = BytesIO()
-                        page.save(img_buffer, format='PNG')
-                        img_buffer.seek(0)
-                        img_data = base64.b64encode(img_buffer.read()).decode('utf-8')
-                        images.append(img_data)
-            else:
-                pages = convert_from_path(output_file, dpi=DPI, output_folder=temp_dir, fmt=OUTPUT_FORMAT)
-                for page in pages:
-                    img_buffer = BytesIO()
-                    page.save(img_buffer, format='PNG')
-                    img_buffer.seek(0)
-                    img_data = base64.b64encode(img_buffer.read()).decode('utf-8')
-                    images.append(img_data)
+    except Exception as e:
+        return jsonify({'error': str(e)})
 
-        # Remove PDF chunks and input file from the temp directory
-        for chunk_file in chunk_files:
-            os.remove(chunk_file)
-        if input_file:
+    finally:
+        # Delete the temporary input file
+        if input_file and os.path.exists(input_file):
             os.remove(input_file)
-        if output_file:
-            os.remove(output_file)
 
-        # Remove images from the output directory
-        for filename in os.listdir(temp_dir):
-            file_path = os.path.join(temp_dir, filename)
-            try:
-                if os.path.isfile(file_path):
-                    os.unlink(file_path)
-            except Exception as e:
-                print(f'Error deleting {file_path}: {e}')
-
-    print('success',len(images))
+    print('success', len(images))
     return jsonify({'images': images[:page_number]})
-
 
 
 
