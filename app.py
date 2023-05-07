@@ -27,6 +27,16 @@ import sys
 import fitz
 from docx2pdf import convert as docx2pdf
 
+def get_file_extension(url):
+    # Use mimetypes to get the MIME type of the file
+    content_type, _ = mimetypes.guess_type(url)
+    # Try to guess the extension from the MIME type
+    file_ext = mimetypes.guess_extension(content_type)
+    # If guess_extension fails, try to get the extension from the URL
+    if file_ext is None:
+        file_ext = os.path.splitext(url)[1]
+    return file_ext
+
 CHUNK_SIZE = 3
 OUTPUT_FORMAT = "png"
 
@@ -45,13 +55,10 @@ def convert():
     try:
         # Get the file type from the response headers
         response = requests.get(document_url, stream=True)
-        content_type = response.headers.get('content-type')
-        mime_type, _ = mimetypes.guess_type(document_url)
-        file_ext = mimetypes.guess_extension(mime_type)
-        extension = mimetypes.guess_extension(content_type)
-        if not file_ext and not extension:
+        file_ext = get_file_extension(document_url)
+        if not file_ext:
             return jsonify({'error': 'Unknown file type'})
-        if file_ext == '.docx' or extension == '.docx':
+        if file_ext == '.docx':
             # Convert DOCX file to PDF
             with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as temp_docx:
               for chunk in response.iter_content(chunk_size=8192):
