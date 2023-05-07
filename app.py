@@ -40,6 +40,7 @@ def convert():
     # Get the file type from - response header
     response = None
     images = []
+    input_file = None
     try:
         # Get the file type from the response headers
         response = requests.get(document_url, stream=True)
