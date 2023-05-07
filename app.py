@@ -75,8 +75,8 @@ def convert():
         if temp_image and os.path.exists(temp_image.name):
             os.remove(temp_image.name)
 
-    print('success', len(images))
-    return jsonify({'images': images[:page_number]})
+    #print('success', len(images))
+    return jsonify({'images': len(images)})
 
 @app.route('/')
 def hello_world():
