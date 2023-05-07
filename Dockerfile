@@ -20,16 +20,13 @@ RUN ln -s /usr/include/freetype2/ft2build.h /usr/include/ft2build.h \
     && make HAVE_X11=no HAVE_GLUT=no shared=yes prefix=/usr/local install \
     && cd .. \
     && rm -rf *.tar.gz mupdf-${MUPDF}-source
-RUN pip install PyMuPDF==1.18.9
+RUN pip install PyMuPDF==1.22.2
 
 # Copy the requirements file into the container at /app
 COPY requirements.txt .
 
 RUN apk update
-# Install any needed packages specified in requirements.txt
-# RUN apk add tiff-dev jpeg-dev openjpeg-dev zlib-dev freetype-dev lcms2-dev && \
-#     libwebp-dev tcl-dev tk-dev harfbuzz-dev fribidi-dev libimagequant-dev && \
-#     libxcb-dev libpng-dev
+
 RUN apk add --no-cache --virtual .build-deps gcc musl-dev libffi-dev openssl-dev && \
     pip install --no-cache-dir -r requirements.txt && \
     apk del .build-deps
