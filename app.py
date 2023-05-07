@@ -29,6 +29,9 @@ from docx2pdf import convert as docx2pdf
 
 def get_file_extension(url):
     # Use mimetypes to get the MIME type of the file
+    if url.__contains__('.docx'):
+      return '.docx'
+      
     content_type, _ = mimetypes.guess_type(url)
     # Try to guess the extension from the MIME type
     file_ext = mimetypes.guess_extension(content_type)
@@ -58,7 +61,7 @@ def convert():
         response = requests.get(document_url, stream=True)
         if not file_ext:
             return jsonify({'error': 'Unknown file type'})
-        if file_ext == '.docx' or document_url.__contains__('.docx'):
+        if file_ext == '.docx':
             return jsonify({'doc': 'x'})
             # Convert DOCX file to PDF
             with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as temp_docx:
