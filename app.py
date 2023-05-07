@@ -41,24 +41,35 @@ def convert():
     response = None
     images = []
     try:
-        # Download the document file to a temporary file
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
-            response = requests.get(document_url, stream=True)
-            response.raise_for_status()
-            for chunk in response.iter_content(chunk_size=8192):
-                temp_file.write(chunk)
-        input_file = temp_file.name
-
-        # Check the file type and split the file into chunks if necessary
-        file_ext = os.path.splitext(input_file)[1]
-        if file_ext.lower() == '.docx':
+        # Get the file type from the response headers
+        response = requests.get(document_url, stream=True)
+        content_type = response.headers.get('content-type')
+        file_ext = mimetypes.guess_extension(content_type)
+        if not file_ext:
+            return jsonify({'error': 'Unknown file type'})
+        if file_ext == '.docx':
             # Convert DOCX file to PDF
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as temp_docx:
+              for chunk in response.iter_content(chunk_size=8192):
+                  temp_docx.write(chunk)
+                  input_file=temp_docx.name
             with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_pdf:
                 docx2pdf(input_file, temp_pdf.name)
                 input_file = temp_pdf.name
         elif file_ext.lower() != '.pdf':
             return jsonify({'error': 'Unsupported file type'})
 
+
+        # Download the document file to a temporary file
+        if file_ext == '.pdf':
+          with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+              response.raise_for_status()
+              for chunk in response.iter_content(chunk_size=8192):
+                  temp_file.write(chunk)
+          input_file = temp_file.name
+
+        # Check the file type and split the file into chunks if necessary
+        
         with tempfile.NamedTemporaryFile(delete=False, suffix='.jpeg') as temp_image:
             doc = fitz.open(input_file)
             pages = min(page_number, doc.page_count)
