@@ -154,6 +154,13 @@ def convert():
     page_number = int(page_number)
     if not document_url:
         return jsonify({'error': 'URL is required'})
+    # Get the file type from - response headers
+    '''
+    content_type = response.headers.get('content-type')
+    file_ext = mimetypes.guess_extension(content_type)
+    if not file_ext:
+        return jsonify({'error': 'Unknown file type'})
+    '''
 
     response = None
     try:
@@ -172,17 +179,14 @@ def convert():
             if content_length > CHUNK_SIZE:
                 with tempfile.TemporaryDirectory() as temp_dir:
                     chunk_files = split_pdf(input_file, temp_dir, CHUNK_SIZE)
-                    for chunk_file in chunk_files:
-                        with fitz.open(chunk_file) as doc:
-                            pages = doc.page_count
-                            for i in range(min(page_number, pages)):
-                                page = doc.load_page(i)
-                                pix = page.get_pixmap(alpha=False)
-                                img_buffer = BytesIO()
-                                pix.save(img_buffer, format='PNG')
-                                img_buffer.seek(0)
-                                img_data = base64.b64encode(img_buffer.read()).decode('utf-8')
-                                images.append(img_data)
+                    for i in range(min(page_number, pages)):
+                      page = doc.load_page(i)
+                      pix = page.get_pixmap(alpha=False)
+                      img_buffer = BytesIO()
+                      pix.convert_to_png().write_png(img_buffer)
+                      img_buffer.seek(0)
+                      img_data = base64.b64encode(img_buffer.read()).decode('utf-8')
+                      images.append(img_data)
             else:
                 with fitz.open(input_file) as doc:
                     pages = doc.page_count
