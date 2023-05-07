@@ -29,6 +29,53 @@ import fitz
 CHUNK_SIZE = 3
 OUTPUT_FORMAT = "png"
 
+
+
+@app.route('/convert')
+def convert():
+    document_url = request.args.get('url')
+    if not document_url:
+        return jsonify({'error': 'URL is required'})
+    
+    response = None
+    images = []
+    try:
+        # Download the document file to a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+            response = requests.get(document_url, stream=True)
+            response.raise_for_status()
+            for chunk in response.iter_content(chunk_size=8192):
+                temp_file.write(chunk)
+        input_file = temp_file.name
+
+        # Check the file type and split the file into chunks if necessary
+        file_ext = os.path.splitext(input_file)[1]
+        if file_ext.lower() == '.pdf':
+            doc = fitz.open(input_file)
+            for page in doc:
+                pix = page.get_pixmap()
+                img_buffer = BytesIO()
+                pix.save(img_buffer)
+                img_buffer.seek(0)
+                img_data = base64.b64encode(img_buffer.read()).decode('utf-8')
+                images.append(img_data)
+            doc.close()
+        else:
+            return jsonify({'error': 'Unsupported file type'})
+
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
+    finally:
+        # Delete the temporary input file
+        if input_file and os.path.exists(input_file):
+            os.remove(input_file)
+
+    #print('success', len(images))
+    return jsonify({'images': len(images)})
+
+
+'''
 @app.route('/convert')
 def convert():
     document_url = request.args.get('url')
@@ -50,7 +97,8 @@ def convert():
 
         # Check the file type and split the file into chunks if necessary
         file_ext = os.path.splitext(input_file)[1]
-        if file_ext.lower() == '.pdf':
+        file_ext_l = file_ext.lower()
+        if file_ext_l == '.pdf' or file_ext_l == 'docx' or file_ext_l == 'doc':
             with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as temp_image:
                 doc = fitz.open(input_file)
                 pages = min(page_number, doc.page_count)
@@ -77,7 +125,7 @@ def convert():
 
     #print('success', len(images))
     return jsonify({'images': len(images)})
-
+'''
 @app.route('/')
 def hello_world():
     return 'Hello, World!'
