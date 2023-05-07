@@ -9,6 +9,7 @@ WORKDIR /app
 RUN python -m pip install --upgrade pip
 RUN python -m pip install --upgrade Pillow
 RUN pip install flask-cors
+RUN pip install docx2pdf
 
 RUN apk add gcc g++ cmake make mupdf-dev freetype-dev
 ARG MUPDF=1.18.0
