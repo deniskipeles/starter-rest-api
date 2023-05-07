@@ -163,6 +163,7 @@ def convert():
     '''
 
     response = None
+    images = []
     try:
         # Download the document file to a temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
