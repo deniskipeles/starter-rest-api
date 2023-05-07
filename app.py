@@ -118,50 +118,26 @@ PORT = 8000
 HOST = '0.0.0.0'
 
 
-def split_pdf1(input_file, temp_dir, chunk_size=10):
-    # Open the input PDF file
-    with open(input_file, 'rb') as f:
-        input_pdf = PdfFileReader(f)
-
-        # Split the PDF file into chunks
-        num_pages = input_pdf.getNumPages()
-        chunks = []
-        for i in range(0, num_pages, chunk_size):
-            chunk_start = i
-            chunk_end = min(i + chunk_size, num_pages)
-            chunk_output = os.path.join(temp_dir, f'chunk_{chunk_start}_{chunk_end}.pdf')
-            with open(chunk_output, 'wb') as chunk_file:
-                output_pdf = PdfFileWriter()
-                for page in range(chunk_start, chunk_end):
-                    output_pdf.addPage(input_pdf.getPage(page))
-                output_pdf.write(chunk_file)
-            chunks.append(chunk_output)
-
-    return chunks
-
-
 import math
+import sys
 import fitz
 
 def split_pdf(input_file, temp_dir, chunk_size=10):
-    # Create a temporary directory to store the chunked files
-    os.makedirs(temp_dir, exist_ok=True)
-
+    # Check if the input file exists and has a non-zero size
+    if not os.path.isfile(input_file) or os.path.getsize(input_file) == 0:
+        sys.exit('Error: invalid PDF file')
+    
     # Open the input PDF file
     with fitz.open(input_file) as doc:
-        # Get the total number of pages
-        num_pages = doc.page_count
-
         # Split the PDF file into chunks
+        num_pages = doc.page_count
         chunks = []
         for i in range(0, num_pages, chunk_size):
             chunk_start = i
             chunk_end = min(i + chunk_size, num_pages)
             chunk_output = os.path.join(temp_dir, f'chunk_{chunk_start}_{chunk_end}.pdf')
-            with fitz.open() as chunk_doc:
-                for page in range(chunk_start, chunk_end):
-                    chunk_doc.insert_pdf(doc, from_page=page, to_page=page)
-                chunk_doc.save(chunk_output)
+            doc.select(range(chunk_start, chunk_end))
+            doc.save(chunk_output)
             chunks.append(chunk_output)
 
     return chunks
@@ -179,6 +155,7 @@ def convert():
     if not document_url:
         return jsonify({'error': 'URL is required'})
 
+    response = None
     try:
         response = requests.get(document_url, stream=True)
         response.raise_for_status()
