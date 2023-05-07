@@ -180,6 +180,14 @@ def convert():
                 with tempfile.TemporaryDirectory() as temp_dir:
                   chunk_files = split_pdf(input_file, temp_dir, CHUNK_SIZE)
                   for chunk_file in chunk_files:
+                      pages = convert_from_path(chunk_file, dpi=DPI, output_folder=temp_dir, fmt='jpeg')
+                      for page in pages:
+                          img_buffer = BytesIO()
+                          page.save(img_buffer, 'jpeg')
+                          img_buffer.seek(0)
+                          img_data = base64.b64encode(img_buffer.read()).decode('utf-8')
+                          images.append(img_data)
+                      '''
                       doc = fitz.open(chunk_file)
                       pages = min(page_number, doc.page_count)
                       for i in range(pages):
@@ -191,6 +199,7 @@ def convert():
                           img_data = base64.b64encode(img_buffer.read()).decode('utf-8')
                           images.append(img_data)
                       doc.close()
+                      '''
             else:
                 with fitz.open(input_file) as doc:
                     pages = doc.page_count
