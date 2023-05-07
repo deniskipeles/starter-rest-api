@@ -9,6 +9,25 @@ WORKDIR /app
 RUN python -m pip install --upgrade pip
 RUN python -m pip install --upgrade Pillow
 RUN pip install flask-cors
+
+RUN apk add gcc g++ cmake make mupdf-dev freetype-dev
+ARG MUPDF=1.18.0
+RUN ln -s /usr/include/freetype2/ft2build.h /usr/include/ft2build.h \
+    && ln -s /usr/include/freetype2/freetype/ /usr/include/freetype \
+    && wget -c -q https://www.mupdf.com/downloads/archive/mupdf-${MUPDF}-source.tar.gz \
+    && tar xf mupdf-${MUPDF}-source.tar.gz \
+    && cd mupdf-${MUPDF}-source \
+    && make HAVE_X11=no HAVE_GLUT=no shared=yes prefix=/usr/local install \
+    && cd .. \
+    && rm -rf *.tar.gz mupdf-${MUPDF}-source
+RUN pip install PyMuPDF==1.22.2
+
+# Copy the requirements file into the container at /app
+COPY requirements.txt .
+
+RUN apk update
+
+ADD scripts /
 RUN apk --no-cache add bash mc \
             curl \
             util-linux \
@@ -27,22 +46,6 @@ RUN apk --no-cache add bash mc \
         && apk del curl \
         && rm -rf /var/cache/apk/*
 
-RUN apk add gcc g++ cmake make mupdf-dev freetype-dev
-ARG MUPDF=1.18.0
-RUN ln -s /usr/include/freetype2/ft2build.h /usr/include/ft2build.h \
-    && ln -s /usr/include/freetype2/freetype/ /usr/include/freetype \
-    && wget -c -q https://www.mupdf.com/downloads/archive/mupdf-${MUPDF}-source.tar.gz \
-    && tar xf mupdf-${MUPDF}-source.tar.gz \
-    && cd mupdf-${MUPDF}-source \
-    && make HAVE_X11=no HAVE_GLUT=no shared=yes prefix=/usr/local install \
-    && cd .. \
-    && rm -rf *.tar.gz mupdf-${MUPDF}-source
-RUN pip install PyMuPDF==1.22.2
-
-# Copy the requirements file into the container at /app
-COPY requirements.txt .
-
-RUN apk update
 
 RUN apk add --no-cache --virtual .build-deps gcc musl-dev libffi-dev openssl-dev && \
     pip install --no-cache-dir -r requirements.txt && \
