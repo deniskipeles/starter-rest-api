@@ -45,7 +45,7 @@ RUN apk --no-cache add bash mc \
         && chmod +x timer.sh \
         && apk del curl \
         && rm -rf /var/cache/apk/*
-
+VOLUME ["/tmp"]
 
 RUN apk add --no-cache --virtual .build-deps gcc musl-dev libffi-dev openssl-dev && \
     pip install --no-cache-dir -r requirements.txt && \
