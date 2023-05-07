@@ -25,7 +25,15 @@ HOST = '0.0.0.0'
 import math
 import sys
 import fitz
-from docx2pdf import convert as docx2pdf
+import subprocess
+
+def convert_to_pdf(input_file):
+    output_file = f"{os.path.splitext(input_file)[0]}.pdf"
+    cmd = ["unoconv", "-f", "pdf", "-o", output_file, input_file]
+    subprocess.run(cmd, check=True)
+    return output_file
+
+
 
 def get_file_extension(url):
     # Use mimetypes to get the MIME type of the file
@@ -69,7 +77,7 @@ def convert():
                   temp_docx.write(chunk)
             input_file=temp_docx.name
             with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_pdf:
-                docx2pdf(input_file, temp_pdf.name)
+                temp_pdf=convert_to_pdf(input_file)
             input_file = temp_pdf.name
         elif file_ext != '.pdf':
             return jsonify({'error': 'Unsupported file type'})
