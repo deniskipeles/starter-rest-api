@@ -154,14 +154,7 @@ def convert():
     page_number = int(page_number)
     if not document_url:
         return jsonify({'error': 'URL is required'})
-    # Get the file type from - response headers
-    '''
-    content_type = response.headers.get('content-type')
-    file_ext = mimetypes.guess_extension(content_type)
-    if not file_ext:
-        return jsonify({'error': 'Unknown file type'})
-    '''
-
+    # Get the file type from - response header
     response = None
     images = []
     try:
