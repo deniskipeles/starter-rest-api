@@ -59,8 +59,8 @@ def convert():
             input_file=temp_docx.name
             with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_pdf:
                 docx2pdf(input_file, temp_pdf.name)
-                input_file = temp_pdf.name
-        elif file_ext.lower() != '.pdf':
+            input_file = temp_pdf.name
+        elif file_ext != '.pdf':
             return jsonify({'error': 'Unsupported file type'})
 
 
