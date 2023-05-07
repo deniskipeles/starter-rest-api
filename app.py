@@ -32,7 +32,7 @@ OUTPUT_FORMAT = "png"
 
 
 
-
+@app.route('/convert')
 def convert():
     document_url = request.args.get('url')
     page_number = request.args.get('pages') or 1
