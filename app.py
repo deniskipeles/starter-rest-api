@@ -52,13 +52,13 @@ def convert():
     images = []
     input_file = None
     temp_image = None
+    file_ext = get_file_extension(document_url)
     try:
         # Get the file type from the response headers
         response = requests.get(document_url, stream=True)
-        file_ext = get_file_extension(document_url)
         if not file_ext:
             return jsonify({'error': 'Unknown file type'})
-        if file_ext == '.docx':
+        if file_ext == '.docx' or document_url.__contains__('.docx'):
             return jsonify({'doc': 'x'})
             # Convert DOCX file to PDF
             with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as temp_docx:
