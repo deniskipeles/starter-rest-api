@@ -51,7 +51,7 @@ def convert():
         # Check the file type and split the file into chunks if necessary
         file_ext = os.path.splitext(input_file)[1]
         if file_ext.lower() == '.pdf':
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as temp_image:
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.jpeg') as temp_image:
                 doc = fitz.open(input_file)
                 pages = min(page_number, doc.page_count)
                 for i in range(pages):
