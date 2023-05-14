@@ -69,17 +69,7 @@ def convert():
         response = requests.get(document_url, stream=True)
         if not file_ext:
             return jsonify({'error': 'Unknown file type'})
-        if file_ext == '.docx':
-            #return jsonify({'doc': 'x'})
-            # Convert DOCX file to PDF
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as temp_docx:
-              for chunk in response.iter_content(chunk_size=8192):
-                  temp_docx.write(chunk)
-            input_file=temp_docx.name
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_pdf:
-                temp_pdf=convert_to_pdf(input_file)
-            input_file = temp_pdf.name
-        elif file_ext != '.pdf':
+        if file_ext != '.pdf':
             return jsonify({'error': 'Unsupported file type'})
         # Download the document file to a temporary file
         if file_ext == '.pdf':
