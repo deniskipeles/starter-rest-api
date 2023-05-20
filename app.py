@@ -9,7 +9,7 @@ from io import BytesIO
 from PIL import Image
 from flask_cors import CORS
 import mimetypes
-import subprocess
+import spacy
 from PyPDF2 import PdfFileReader
 
 DPI = 150
@@ -27,11 +27,41 @@ import sys
 import fitz
 import subprocess
 
-def convert_to_pdf(input_file):
-    output_file = f"{os.path.splitext(input_file)[0]}.pdf"
-    cmd = ["unoconv", "-f", "pdf", "-o", output_file, input_file]
-    subprocess.run(cmd, check=True)
-    return output_file
+
+# Load the spaCy language model
+nlp = spacy.load('en_core_web_sm')
+
+
+@app.route('/summary')
+def summarize():
+    text_file_url = request.get_json().get('url')
+    if not text_file_url:
+        return jsonify({'error': 'Text file URL is required'})
+    
+    response = None
+    text = None
+    
+    try:
+        # Get the file type from the response headers
+        response = requests.get(text_file_url, stream=True)
+        response.raise_for_status()
+
+        # Extract the text from the text file
+        text = response.text
+        
+        # Perform text summarization using spaCy
+        doc = nlp(text)
+        sentences = [sent.text for sent in doc.sents]
+        summary = ' '.join(sentences[:3])  # Generate a summary using the first 3 sentences
+        
+        return jsonify({'summary': summary})
+    
+    except Exception as e:
+        return jsonify({'error': str(e)})
+    
+    finally:
+        if response:
+            response.close()
 
 
 
