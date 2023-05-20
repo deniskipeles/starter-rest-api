@@ -22,6 +22,7 @@ RUN ln -s /usr/include/freetype2/ft2build.h /usr/include/ft2build.h \
 
 # Upgrade pip
 RUN python -m pip install --upgrade pip
+RUN pip install PyMuPDF==1.22.2
 
 # Install Python dependencies
 COPY requirements.txt .
