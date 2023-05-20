@@ -9,6 +9,8 @@ WORKDIR /app
 RUN python -m pip install --upgrade pip
 RUN python -m pip install --upgrade Pillow
 RUN pip install flask-cors
+RUN pip install spacy
+RUN python -m spacy download en_core_web_sm
 
 RUN apk add gcc g++ cmake make mupdf-dev freetype-dev
 ARG MUPDF=1.18.0
@@ -23,7 +25,7 @@ RUN ln -s /usr/include/freetype2/ft2build.h /usr/include/ft2build.h \
 RUN pip install PyMuPDF==1.22.2
 
 # Copy the requirements file into the container at /app
-COPY requirements.txt .
+COPY . .
 
 RUN apk update
 
