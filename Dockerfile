@@ -4,15 +4,12 @@ FROM python:3.9-alpine
 # Set the working directory to /app
 WORKDIR /app
 
-# Upgrade pip
-#RUN pip install --upgrade pip
-RUN python -m pip install --upgrade pip
-RUN python -m pip install --upgrade Pillow
-RUN pip install flask-cors
-RUN pip install spacy
-RUN python -m spacy download en_core_web_sm
+# Install system-level dependencies
+RUN apk update && apk add --no-cache gcc musl-dev libffi-dev openssl-dev \
+    jpeg-dev zlib-dev libjpeg poppler-utils \
+    gcc g++ cmake make mupdf-dev freetype-dev \
+    wget
 
-RUN apk add gcc g++ cmake make mupdf-dev freetype-dev
 ARG MUPDF=1.18.0
 RUN ln -s /usr/include/freetype2/ft2build.h /usr/include/ft2build.h \
     && ln -s /usr/include/freetype2/freetype/ /usr/include/freetype \
@@ -22,31 +19,24 @@ RUN ln -s /usr/include/freetype2/ft2build.h /usr/include/ft2build.h \
     && make HAVE_X11=no HAVE_GLUT=no shared=yes prefix=/usr/local install \
     && cd .. \
     && rm -rf *.tar.gz mupdf-${MUPDF}-source
-RUN pip install PyMuPDF==1.22.2
 
-# Copy the requirements file into the container at /app
+# Upgrade pip and install Python dependencies
+COPY requirements.txt .
+RUN python -m pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Install spaCy and its language model
+RUN pip install spacy && \
+    python -m spacy download en_core_web_sm
+
+# Copy the application code into the container at /app
 COPY . .
 
-RUN apk update
+# Create the images directory
+RUN mkdir images
 
-
-RUN apk add --no-cache --virtual .build-deps gcc musl-dev libffi-dev openssl-dev && \
-    pip install --no-cache-dir -r requirements.txt && \
-    apk del .build-deps
-
-#RUN apk add --no-cache libreoffice unoconv
-
-# Install poppler-utils
-RUN apk add --no-cache poppler-utils
-
-# Install system-level dependencies for Pillow
-RUN apk add --no-cache jpeg-dev zlib-dev libjpeg
-
-RUN mkdir images # Create the images directory
-# Copy the rest of the application code into the container at /app
-COPY . .
-
-# Make port 3000 available to the world outside this container
+# Make port 8000 available to the world outside this container
 EXPOSE 8000
 
+# Run the Gunicorn server
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app:app"]
