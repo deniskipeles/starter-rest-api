@@ -20,14 +20,22 @@ RUN ln -s /usr/include/freetype2/ft2build.h /usr/include/ft2build.h \
     && cd .. \
     && rm -rf *.tar.gz mupdf-${MUPDF}-source
 
-# Upgrade pip and install Python dependencies
+# Upgrade pip
+RUN python -m pip install --upgrade pip
+
+# Install Python dependencies
 COPY requirements.txt .
-RUN python -m pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Install spaCy and its language model
 RUN pip install spacy && \
     python -m spacy download en_core_web_sm
+
+# Install Pillow
+RUN pip install --upgrade Pillow
+
+# Install Flask-CORS
+RUN pip install flask-cors
 
 # Copy the application code into the container at /app
 COPY . .
