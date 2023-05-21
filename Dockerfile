@@ -22,7 +22,7 @@ RUN apk update && apk add --no-cache gcc musl-dev libffi-dev openssl-dev \
 
 # Upgrade pip
 RUN python -m pip install --upgrade pip
-RUN pip install PyMuPDF==1.22.2
+# RUN pip install PyMuPDF==1.22.2
 
 # Install Python dependencies
 COPY requirements.txt .
