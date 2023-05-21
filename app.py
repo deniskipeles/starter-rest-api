@@ -34,7 +34,7 @@ nlp = spacy.load('en_core_web_sm')
 
 @app.route('/summary')
 def summarize():
-    text_file_url = request.get_json().get('url')
+    text_file_url = request.args.get('url')
     if not text_file_url:
         return jsonify({'error': 'Text file URL is required'})
     
