@@ -29,8 +29,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Install spaCy and its language model
-RUN pip install spacy
-RUN python -m spacy download en_core_web_sm
+RUN pip install spacy && \
+    python -m spacy download en_core_web_sm
 
 # Install Pillow
 RUN pip install --upgrade Pillow
