@@ -10,19 +10,19 @@ RUN apk update && apk add --no-cache gcc musl-dev libffi-dev openssl-dev \
     gcc g++ cmake make mupdf-dev freetype-dev \
     wget
 
-# ARG MUPDF=1.18.0
-# RUN ln -s /usr/include/freetype2/ft2build.h /usr/include/ft2build.h \
-#     && ln -s /usr/include/freetype2/freetype/ /usr/include/freetype \
-#     && wget -c -q https://www.mupdf.com/downloads/archive/mupdf-${MUPDF}-source.tar.gz \
-#     && tar xf mupdf-${MUPDF}-source.tar.gz \
-#     && cd mupdf-${MUPDF}-source \
-#     && make HAVE_X11=no HAVE_GLUT=no shared=yes prefix=/usr/local install \
-#     && cd .. \
-#     && rm -rf *.tar.gz mupdf-${MUPDF}-source
+ARG MUPDF=1.18.0
+RUN ln -s /usr/include/freetype2/ft2build.h /usr/include/ft2build.h \
+    && ln -s /usr/include/freetype2/freetype/ /usr/include/freetype \
+    && wget -c -q https://www.mupdf.com/downloads/archive/mupdf-${MUPDF}-source.tar.gz \
+    && tar xf mupdf-${MUPDF}-source.tar.gz \
+    && cd mupdf-${MUPDF}-source \
+    && make HAVE_X11=no HAVE_GLUT=no shared=yes prefix=/usr/local install \
+    && cd .. \
+    && rm -rf *.tar.gz mupdf-${MUPDF}-source
 
 # Upgrade pip
 RUN python -m pip install --upgrade pip
-# RUN pip install PyMuPDF==1.22.2
+RUN pip install PyMuPDF==1.22.2
 
 # Install Python dependencies
 COPY requirements.txt .
