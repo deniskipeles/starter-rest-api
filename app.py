@@ -49,7 +49,7 @@ def summarize():
         
         # Perform text summarization using Hugging Face BART model
         summarizer = pipeline("summarization", model="facebook/bart-base")
-        summary = summarizer(text, max_length=100, min_length=30, do_sample=False)
+        summary = summarizer(text, max_length=500, min_length=50, do_sample=False)
         summary_text = summary[0]['summary_text']
         
         return jsonify({'summary': summary_text})
