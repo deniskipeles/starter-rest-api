@@ -183,6 +183,8 @@ def pdf_to_text():
 
     return "No PDF URL provided."
 
+
+
 @app.route('/pdf/html')
 def pdf_to_html():
     pdf_file_url = request.args.get('url')
@@ -209,19 +211,14 @@ def pdf_to_html():
             # Concatenate the HTML pages into a single HTML string
             html_content = "\n".join(html_pages)
 
-            # Create a Flask response with the HTML content
-            response = make_response(html_content)
-
-            # Set the appropriate headers for the response
-            response.headers['Content-Disposition'] = 'attachment; filename=extracted_html.html'
-            response.headers['Content-Type'] = 'text/html'
-
-            return response
+            # Return the HTML content as a JSON response
+            return jsonify(html=html_content)
 
         except requests.exceptions.RequestException as e:
-            return f"Error downloading the PDF: {str(e)}"
+            return jsonify(error=f"Error downloading the PDF: {str(e)}")
 
-    return "No PDF URL provided."
+    return jsonify(error="No PDF URL provided.")
+
 
 
 if __name__ == '__main__':
