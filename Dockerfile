@@ -4,11 +4,14 @@ FROM python:3.9-alpine
 # Set the working directory to /app
 WORKDIR /app
 
-# Install system-level dependencies including Rust
-RUN apk update && apk add --no-cache build-base && \
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
+# Install system-level dependencies including curl and rustup
+RUN apk update && apk add --no-cache curl && \
+    apk add --no-cache --virtual .build-deps openssl && \
+    curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable && \
     export PATH="$HOME/.cargo/bin:$PATH" && \
-    rustup default stable
+    source $HOME/.cargo/env && \
+    rustup default stable && \
+    apk del .build-deps
     
     
     
