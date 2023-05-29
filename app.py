@@ -9,7 +9,6 @@ from io import BytesIO
 from PIL import Image
 from flask_cors import CORS
 import mimetypes
-import spacy
 from flask import make_response
 import io
 # from PyPDF2 import PdfFileReader
@@ -29,10 +28,7 @@ import sys
 import fitz
 import subprocess
 
-
-# Load the spaCy language model
-nlp = spacy.load('en_core_web_sm')
-
+from transformers import pipeline
 
 @app.route('/summary')
 def summarize():
@@ -51,12 +47,12 @@ def summarize():
         # Extract the text from the text file
         text = response.text
         
-        # Perform text summarization using spaCy
-        doc = nlp(text)
-        sentences = [sent.text for sent in doc.sents]
-        summary = ' '.join(sentences[:3])  # Generate a summary using the first 3 sentences
+        # Perform text summarization using Hugging Face BART model
+        summarizer = pipeline("summarization", model="facebook/bart-base")
+        summary = summarizer(text, max_length=100, min_length=30, do_sample=False)
+        summary_text = summary[0]['summary_text']
         
-        return jsonify({'summary': summary})
+        return jsonify({'summary': summary_text})
     
     except Exception as e:
         return jsonify({'error': str(e)})
