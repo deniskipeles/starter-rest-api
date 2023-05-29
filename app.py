@@ -28,38 +28,38 @@ import sys
 import fitz
 import subprocess
 
-from transformers import pipeline
+# from transformers import pipeline
 
-@app.route('/summary')
-def summarize():
-    text_file_url = request.args.get('url')
-    if not text_file_url:
-        return jsonify({'error': 'Text file URL is required'})
+# @app.route('/summary')
+# def summarize():
+#     text_file_url = request.args.get('url')
+#     if not text_file_url:
+#         return jsonify({'error': 'Text file URL is required'})
     
-    response = None
-    text = None
+#     response = None
+#     text = None
     
-    try:
-        # Get the file type from the response headers
-        response = requests.get(text_file_url, stream=True)
-        response.raise_for_status()
+#     try:
+#         # Get the file type from the response headers
+#         response = requests.get(text_file_url, stream=True)
+#         response.raise_for_status()
 
-        # Extract the text from the text file
-        text = response.text
+#         # Extract the text from the text file
+#         text = response.text
         
-        # Perform text summarization using Hugging Face BART model
-        summarizer = pipeline("summarization", model="facebook/bart-base")
-        summary = summarizer(text, max_length=500, min_length=50, do_sample=False)
-        summary_text = summary[0]['summary_text']
+#         # Perform text summarization using Hugging Face BART model
+#         summarizer = pipeline("summarization", model="facebook/bart-base")
+#         summary = summarizer(text, max_length=500, min_length=50, do_sample=False)
+#         summary_text = summary[0]['summary_text']
         
-        return jsonify({'summary': summary_text})
+#         return jsonify({'summary': summary_text})
     
-    except Exception as e:
-        return jsonify({'error': str(e)})
+#     except Exception as e:
+#         return jsonify({'error': str(e)})
     
-    finally:
-        if response:
-            response.close()
+#     finally:
+#         if response:
+#             response.close()
 
 
 
