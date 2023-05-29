@@ -4,6 +4,15 @@ FROM python:3.9-alpine
 # Set the working directory to /app
 WORKDIR /app
 
+# Install system-level dependencies including Rust
+RUN apk update && apk add --no-cache build-base && \
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
+    export PATH="$HOME/.cargo/bin:$PATH" && \
+    rustup default stable
+    
+    
+    
+
 # Install system-level dependencies
 RUN apk update && apk add --no-cache gcc musl-dev libffi-dev openssl-dev \
     jpeg-dev zlib-dev libjpeg poppler-utils \
