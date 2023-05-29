@@ -183,6 +183,47 @@ def pdf_to_text():
 
     return "No PDF URL provided."
 
+@app.route('/pdf/html')
+def pdf_to_html():
+    pdf_file_url = request.args.get('url')
+
+    if pdf_file_url:
+        try:
+            # Download the PDF file
+            response = requests.get(pdf_file_url)
+            response.raise_for_status()
+
+            # Load the PDF data using PyMuPDF
+            pdf_data = response.content
+            pdf = fitz.open(stream=pdf_data, filetype="pdf")
+
+            # Convert each page to HTML
+            html_pages = []
+            for page in pdf:
+                html = page.get_text("html")
+                html_pages.append(html)
+
+            # Close the PDF
+            pdf.close()
+
+            # Concatenate the HTML pages into a single HTML string
+            html_content = "\n".join(html_pages)
+
+            # Create a Flask response with the HTML content
+            response = make_response(html_content)
+
+            # Set the appropriate headers for the response
+            response.headers['Content-Disposition'] = 'attachment; filename=extracted_html.html'
+            response.headers['Content-Type'] = 'text/html'
+
+            return response
+
+        except requests.exceptions.RequestException as e:
+            return f"Error downloading the PDF: {str(e)}"
+
+    return "No PDF URL provided."
+
+
 if __name__ == '__main__':
     app.run(host=HOST, port=PORT, debug=True)
 
