@@ -41,8 +41,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Install spaCy and its language model
-RUN pip install transformers
-RUN pip install torch
+# RUN pip install transformers
+# RUN pip install torch
 
 
 # Install Pillow
