@@ -30,22 +30,31 @@ import subprocess
 import spacy
 
 
+
+
+
 @app.route('/summary')
 def summarize():
     text_file_url = request.args.get('url')
-    if not text_file_url:
-        return jsonify({'error': 'Text file URL is required'})
+    text_string = request.args.get('txt')  # Get the txt query parameter
+
+    if not text_file_url and not text_string:
+        return jsonify({'error': 'Text file URL or txt parameter is required'})
 
     response = None
     text = None
 
     try:
-        # Get the file type from the response headers
-        response = requests.get(text_file_url, stream=True)
-        response.raise_for_status()
+        if text_string:
+            # Use the provided text string
+            text = text_string
+        else:
+            # Get the file type from the response headers
+            response = requests.get(text_file_url, stream=True)
+            response.raise_for_status()
 
-        # Extract the text from the text file
-        text = response.text
+            # Extract the text from the text file
+            text = response.text
 
         # Perform text summarization using spaCy
         nlp = spacy.load("en_core_web_sm")
@@ -64,6 +73,7 @@ def summarize():
 
     # Handle the case where an exception is raised and no JSON response is returned
     return jsonify({'error': 'An unexpected error occurred'})
+
 
 
 
