@@ -27,39 +27,42 @@ import math
 import sys
 import fitz
 import subprocess
+import spacy
 
-# from transformers import pipeline
 
-# @app.route('/summary')
-# def summarize():
-#     text_file_url = request.args.get('url')
-#     if not text_file_url:
-#         return jsonify({'error': 'Text file URL is required'})
-    
-#     response = None
-#     text = None
-    
-#     try:
-#         # Get the file type from the response headers
-#         response = requests.get(text_file_url, stream=True)
-#         response.raise_for_status()
 
-#         # Extract the text from the text file
-#         text = response.text
-        
-#         # Perform text summarization using Hugging Face BART model
-#         summarizer = pipeline("summarization", model="facebook/bart-base")
-#         summary = summarizer(text, max_length=500, min_length=50, do_sample=False)
-#         summary_text = summary[0]['summary_text']
-        
-#         return jsonify({'summary': summary_text})
-    
-#     except Exception as e:
-#         return jsonify({'error': str(e)})
-    
-#     finally:
-#         if response:
-#             response.close()
+@app.route('/summary')
+def summarize():
+    text_file_url = request.args.get('url')
+    if not text_file_url:
+        return jsonify({'error': 'Text file URL is required'})
+
+    response = None
+    text = None
+
+    try:
+        # Get the file type from the response headers
+        response = requests.get(text_file_url, stream=True)
+        response.raise_for_status()
+
+        # Extract the text from the text file
+        text = response.text
+
+        # Perform text summarization using spaCy
+        nlp = spacy.load("en_core_web_sm")
+        doc = nlp(text)
+        sentences = [sent.text for sent in doc.sents]
+        summary = " ".join(sentences[:10])  # Adjust the number of sentences as needed
+
+        return jsonify({'summary': summary})
+
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
+    finally:
+        if response:
+            response.close()
+
 
 
 
