@@ -30,7 +30,6 @@ import subprocess
 import spacy
 
 
-
 @app.route('/summary')
 def summarize():
     text_file_url = request.args.get('url')
@@ -52,7 +51,7 @@ def summarize():
         nlp = spacy.load("en_core_web_sm")
         doc = nlp(text)
         sentences = [sent.text for sent in doc.sents]
-        summary = " ".join(sentences[:10])  # Adjust the number of sentences as needed
+        summary = " ".join(sentences[:5])  # Adjust the number of sentences as needed
 
         return jsonify({'summary': summary})
 
@@ -62,6 +61,10 @@ def summarize():
     finally:
         if response:
             response.close()
+
+    # Handle the case where an exception is raised and no JSON response is returned
+    return jsonify({'error': 'An unexpected error occurred'})
+
 
 
 
@@ -187,7 +190,6 @@ def pdf_to_text():
     return "No PDF URL provided."
 
 
-
 @app.route('/pdf/html')
 def pdf_to_html():
     pdf_file_url = request.args.get('url')
@@ -202,10 +204,11 @@ def pdf_to_html():
             pdf_data = response.content
             pdf = fitz.open(stream=pdf_data, filetype="pdf")
 
-            # Convert each page to HTML
+            # Convert the first 10 pages to HTML
             html_pages = []
-            for page in pdf:
-                html = page.get_text("html")
+            num_pages = min(10, len(pdf))  # Limit the number of pages
+            for page in range(num_pages):
+                html = pdf[page].get_text("html")
                 html_pages.append(html)
 
             # Close the PDF
@@ -221,7 +224,6 @@ def pdf_to_html():
             return jsonify(error=f"Error downloading the PDF: {str(e)}")
 
     return jsonify(error="No PDF URL provided.")
-
 
 
 if __name__ == '__main__':
