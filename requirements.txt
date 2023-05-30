@@ -5,3 +5,4 @@ requests==2.26.0
 gunicorn==19.9.0
 PyPDF2==1.26.0
 PyMuPDF==1.22.2
+spacy==3.5.2
