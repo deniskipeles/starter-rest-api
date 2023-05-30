@@ -44,6 +44,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # RUN pip install transformers
 # RUN pip install torch
 
+# Install spaCy and its language model
+RUN python -m spacy download en_core_web_sm
 
 # Install Pillow
 RUN pip install --upgrade Pillow
