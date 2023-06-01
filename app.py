@@ -31,9 +31,11 @@ import spacy
 
 
 
+import math
 
+CHUNK_SIZE = 20 * 1024  # 20KB
 
-@app.route('/summary')
+@app.route('/summary', methods=['GET'])
 def summarize():
     text_file_url = request.args.get('url')
     text_string = request.args.get('txt')  # Get the txt query parameter
@@ -56,13 +58,23 @@ def summarize():
             # Extract the text from the text file
             text = response.text
 
-        # Perform text summarization using spaCy
-        nlp = spacy.load("en_core_web_sm")
-        doc = nlp(text)
-        sentences = [sent.text for sent in doc.sents]
-        summary = " ".join(sentences[:5])  # Adjust the number of sentences as needed
+        # Split the text into chunks
+        num_chunks = math.ceil(len(text) / CHUNK_SIZE)
+        chunks = [text[i:i+CHUNK_SIZE] for i in range(0, len(text), CHUNK_SIZE)]
 
-        return jsonify({'summary': summary})
+        summaries = []
+
+        # Perform text summarization for each chunk
+        nlp = spacy.load("en_core_web_sm")
+        for chunk in chunks:
+            doc = nlp(chunk)
+            sentences = [sent.text for sent in doc.sents]
+            summary = " ".join(sentences[:5])  # Adjust the number of sentences as needed
+            summaries.append(summary)
+
+        combined_summary = " ".join(summaries)
+
+        return jsonify({'summary': combined_summary})
 
     except Exception as e:
         return jsonify({'error': str(e)})
