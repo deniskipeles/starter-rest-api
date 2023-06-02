@@ -34,6 +34,28 @@ import spacy
 import math
 
 CHUNK_SIZE = 20 * 1024  # 20KB
+def summarizer(text_file_url):
+    # Get the text file from the URL
+    response = requests.get(text_file_url, stream=True)
+    response.raise_for_status()
+
+    # Split the text into chunks
+    num_chunks = math.ceil(len(response.text) / CHUNK_SIZE)
+    chunks = [response.text[i:i+CHUNK_SIZE] for i in range(0, len(response.text), CHUNK_SIZE)]
+
+    # Perform text summarization for each chunk
+    summaries = []
+    nlp = spacy.load("en_core_web_sm")
+    for chunk in chunks:
+        doc = nlp(chunk)
+        sentences = [sent.text for sent in doc.sents]
+        summary = " ".join(sentences[:5])  # Adjust the number of sentences as needed
+        summaries.append(summary)
+
+    # Combine the summaries
+    combined_summary = " ".join(summaries)
+
+    return combined_summary
 
 @app.route('/summary', methods=['GET'])
 def summarize():
@@ -49,32 +71,19 @@ def summarize():
     try:
         if text_string:
             # Use the provided text string
-            text = text_string
+            nlp = spacy.load("en_core_web_sm")
+            doc = nlp(text_string)
+            sentences = [sent.text for sent in doc.sents]
+            text = " ".join(sentences[:5])  # Adjust the number of sentences as needed
         else:
             # Get the file type from the response headers
             response = requests.get(text_file_url, stream=True)
             response.raise_for_status()
 
             # Extract the text from the text file
-            text = response.text
+            text = summerizer(text_file_url)
 
-        # Split the text into chunks
-        num_chunks = math.ceil(len(text) / CHUNK_SIZE)
-        chunks = [text[i:i+CHUNK_SIZE] for i in range(0, len(text), CHUNK_SIZE)]
-
-        summaries = []
-
-        # Perform text summarization for each chunk
-        nlp = spacy.load("en_core_web_sm")
-        for chunk in chunks:
-            doc = nlp(chunk)
-            sentences = [sent.text for sent in doc.sents]
-            summary = " ".join(sentences[:5])  # Adjust the number of sentences as needed
-            summaries.append(summary)
-
-        combined_summary = " ".join(summaries)
-
-        return jsonify({'summary': combined_summary})
+        return jsonify({'summary': text})
 
     except Exception as e:
         return jsonify({'error': str(e)})
