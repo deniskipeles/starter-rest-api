@@ -221,9 +221,12 @@ def pdf_to_text():
     return "No PDF URL provided."
 
 
+
 @app.route('/pdf/html')
 def pdf_to_html():
     pdf_file_url = request.args.get('url')
+    page = request.args.get('page', default=1, type=int)
+    per_page = request.args.get('per_page', default=10, type=int)
 
     if pdf_file_url:
         try:
@@ -235,11 +238,14 @@ def pdf_to_html():
             pdf_data = response.content
             pdf = fitz.open(stream=pdf_data, filetype="pdf")
 
-            # Convert the first 10 pages to HTML
+            # Calculate the range of pages to extract based on pagination
+            start_page = (page - 1) * per_page
+            end_page = start_page + per_page
+
+            # Convert the specified pages to HTML
             html_pages = []
-            num_pages = min(10, len(pdf))  # Limit the number of pages
-            for page in range(num_pages):
-                html = pdf[page].get_text("html")
+            for page_num in range(start_page, min(end_page, len(pdf))):
+                html = pdf[page_num].get_text("html")
                 html_pages.append(html)
 
             # Close the PDF
@@ -255,6 +261,7 @@ def pdf_to_html():
             return jsonify(error=f"Error downloading the PDF: {str(e)}")
 
     return jsonify(error="No PDF URL provided.")
+
 
 
 if __name__ == '__main__':
