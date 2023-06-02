@@ -81,7 +81,7 @@ def summarize():
             response.raise_for_status()
 
             # Extract the text from the text file
-            text = summerizer(text_file_url)
+            text = summarizer(text_file_url)
 
         return jsonify({'summary': text})
 
